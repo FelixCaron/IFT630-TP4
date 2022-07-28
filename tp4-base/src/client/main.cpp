@@ -26,7 +26,7 @@ struct mesg_buffer {
 } message;
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
-// général: https://man7.org/linux/man-pages/man7/sysvipc.7.html
+// gï¿½nï¿½ral: https://man7.org/linux/man-pages/man7/sysvipc.7.html
 
 static void send_msg(key_t key, mesg_buffer msg, int clientId) {
     int msgid;
@@ -57,9 +57,10 @@ static mesg_buffer get_msg(key_t key, int clientId) {
 int main(int argc, char* argv[]) {
 	cout << "Client started" << endl;
 
-    int useId = atoi(argv[1]);
-    int defaultPort = atoi(argv[2]);
-    defaultPort = 1337;
+    //int useId = atoi(argv[1]);
+    //int defaultPort = atoi(argv[2]);
+    int defaultPort = 1337;
+    int useId = 1;
     mesg_buffer leMessage = { 1 , 0, "nice text" };
 
     send_msg(defaultPort, leMessage, useId);
