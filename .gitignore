@@ -1,2 +1,4 @@
 .vscode/*
 build/*
+*.o
+tp4-base/bin/*
