@@ -9,4 +9,7 @@ project ("tp4_base")
 add_executable (server "src/server/main.cpp")
 add_executable (client "src/client/main.cpp")
 
+# add_compile_options(-pthread)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 # TODO: Add tests and install targets if needed.

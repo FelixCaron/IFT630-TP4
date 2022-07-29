@@ -85,7 +85,7 @@ static void get_msg(key_t key) {
         
         cout<<"Connection demand from : " << msg.clientId<<endl;
         
-        toSend = {msg.clientId, msg.clientId, "Connection accepted"};
+        toSend = mesg_buffer{msg.clientId, msg.clientId, "Connection accepted"};
         send_msg(toSend);
         cout<<"Response sent"<<endl;
 
