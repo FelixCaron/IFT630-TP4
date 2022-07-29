@@ -17,6 +17,8 @@
 #include <sys/msg.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <filesystem>
+
 
 using std::ios;
 using std::ifstream;
@@ -126,8 +128,10 @@ int main(int argc, char* argv[]) {
 	cout << "Server started" << endl;
 	// Association du signal avec la procédure de gestion (callback).
     port = atoi(argv[1]);
-
-    strcpy(directory,  "/tp4/IFT630-TP4/transfer_folder/");
+    //port = 1337;
+    auto path = std::filesystem::current_path().parent_path().parent_path()  / "transfer_folder/";
+    cout<<path.c_str()<<endl;
+    strcpy(directory,  path.c_str()); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
     msgget(port, 0666|IPC_CREAT);
