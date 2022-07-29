@@ -23,6 +23,10 @@ Sigfunc *signal(int, Sigfunc *);
 
 int port;
 
+struct file_to_send {
+    char name[100];
+    int clientId;
+};
 struct mesg_buffer {
     long mesg_type;
     int clientId;
@@ -32,7 +36,14 @@ struct mesg_buffer {
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
 // général: https://man7.org/linux/man-pages/man7/sysvipc.7.html
-
+static void *send_file(void* arg){
+    file_to_send* file_info;
+    file_info = (file_to_send*) arg;
+    cout<<"Sending: '"<< file_info->name<<"' to client: "<<file_info->clientId<<endl;
+    //HERE WE SEND THE FILE with messages
+    cout<<"file sent"<<endl;
+    
+}
 static void send_msg(key_t key, mesg_buffer msg) {
     int msgid;
 
@@ -60,6 +71,12 @@ static mesg_buffer get_msg(key_t key) {
         toSend = {msg.clientId, msg.clientId, "Connection accepted"};
         send_msg(msg.clientId, toSend);
         cout<<"Response sent"<<endl;
+
+        pthread_t thread;
+        file_to_send info = {"Nom du fichier", msg.clientId};
+        pthread_create(&thread,NULL,send_file,(void*)&info);
+		
+        
     }
     // intéssant: https://www.ibm.com/docs/en/zos/2.3.0?topic=functions-msgrcv-message-receive-operation
     // en bref on pourra faire en sorte que le serveur reçoit tout mais send spécifiquemment a certaine client
