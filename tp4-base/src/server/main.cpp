@@ -126,13 +126,6 @@ static void end_queue(key_t key) {
     msgctl(msgid, IPC_RMID, NULL);
 }
 
-static void close_connection(key_t key) {
-    cout << "Closing connection :" + key << std::endl;
-    // Supprimer a la fin !
-    int msgid = msgget(key, 0666 | IPC_CREAT);
-    msgctl(msgid, IPC_RMID, NULL);
-}
-
 // Procédure qui gère le signal.
 void handle_signint(int sigNumber) {
      
@@ -211,6 +204,7 @@ int main(int argc, char* argv[]) {
     signal(SIGBUS, handle_signint);
     signal(SIGSEGV, handle_signint);
     signal(SIGFPE, handle_signint);
+
     mesg_buffer leMessage;
 
 	while (true) {
