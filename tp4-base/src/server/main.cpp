@@ -94,7 +94,8 @@ static void get_msg(key_t key) {
         strcat(directory,msg.mesg_text);
         strcpy(info.name,directory);
         info.clientId =  msg.clientId;
-        pthread_create(&thread,NULL,send_file,(void*)&info);
+        send_file(&info);
+        //pthread_create(&thread,NULL,send_file,(void*)&info);
 		
         
     }
@@ -126,7 +127,7 @@ int main(int argc, char* argv[]) {
     //port = atoi(argv[1]);
     port = 1337;
     //char directory[100] = argv[2];
-    strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder");
+    strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder/");
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
 
