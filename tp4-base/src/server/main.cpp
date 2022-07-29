@@ -16,7 +16,12 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <fstream>
+#include <chrono>
 
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::seconds;
+using std::chrono::system_clock;
 using std::ios;
 using std::ifstream;
 using std::cout;
@@ -24,8 +29,16 @@ using std::endl;
 typedef void Sigfunc(int);
 Sigfunc *signal(int, Sigfunc *);
 
+time_t t;
+char* dt = ctime(&t);
+int countSIGINT = 0;
 int port;
+auto t_start = system_clock::now();
+auto t_end = system_clock::now();
+double diff = duration_cast<milliseconds>(t_end - t_start).count();
+static volatile sig_atomic_t keep_running = 2;
 char directory[100];
+
 struct file_to_send {
     char name[100];
     int clientId;
@@ -113,11 +126,70 @@ static void end_queue(key_t key) {
     msgctl(msgid, IPC_RMID, NULL);
 }
 
+static void close_connection(key_t key) {
+    cout << "Closing connection :" + key << std::endl;
+    // Supprimer a la fin !
+    int msgid = msgget(key, 0666 | IPC_CREAT);
+    msgctl(msgid, IPC_RMID, NULL);
+}
+
 // Procédure qui gère le signal.
 void handle_signint(int sigNumber) {
-    end_queue(port);
-	exit(0);
-	// ...
+     
+    switch(sigNumber) {
+        //SIGABRT
+        case(6):
+            cout << "SIGABRT received" << std::endl;
+        break;
+        //SIGINT
+        case(2):
+            cout << "SIGINT received" << std::endl;
+            countSIGINT++;
+            if(countSIGINT == 2) {
+                cout << "SIGINT received twice, exiting..." << std::endl;
+                
+                keep_running = 0;
+                end_queue(port);
+                exit(0);
+            }
+
+        break;
+        //SIGTERM
+        case(15):
+            cout << "SIGTERM received" << std::endl;
+        break;
+        //SIGHUP
+        case(1):
+            cout << "SIGHUP received" << std::endl;
+        break;
+        //SIGQUIT
+        case(3):
+            cout << "SIGQUIT received, exiting..." << std::endl;
+            // close_connection(port);
+            end_queue(port);
+            exit(0);
+        break;
+        //SIGTSTP
+        case(18):
+            cout << "SIGTSTP received" << std::endl;
+        break;
+        //SIGILL
+        case(4):
+            cout << "SIGILL received" << std::endl;
+        break;
+        //SIGBUS
+        case(10):
+            cout << "SIGBUS received" << std::endl;
+        break;
+        //SIGSEGV
+        case(11):
+            cout << "SIGSEGV received" << std::endl;
+        break;
+        //SIGFPE
+        case(8):
+            cout << "SIGFPE received" << std::endl;
+        break;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -126,8 +198,19 @@ int main(int argc, char* argv[]) {
     //port = atoi(argv[1]);
     port = 1337;
     //char directory[100] = argv[2];
-    strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder");
-	signal(SIGINT, handle_signint);
+    strcpy(directory,  "/src/ift630/tp4/IFT630-TP4/transfer_folder/");
+
+	signal(SIGABRT, handle_signint);
+    signal(SIGINT, handle_signint);
+    signal(SIGINT, handle_signint);
+    signal(SIGTERM, handle_signint);
+    signal(SIGHUP, handle_signint);
+    signal(SIGQUIT, handle_signint);
+    signal(SIGTSTP, handle_signint);
+    signal(SIGILL, handle_signint);
+    signal(SIGBUS, handle_signint);
+    signal(SIGSEGV, handle_signint);
+    signal(SIGFPE, handle_signint);
     mesg_buffer leMessage;
 
 	while (true) {
