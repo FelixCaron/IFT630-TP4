@@ -59,7 +59,7 @@ static void *send_file(void* arg){
     ifstream file(file_info->name, ios::binary);
     while(!file.eof()){
         file.read(txtBuffer, 100);
-        message.mesg_text = txtBuffer;
+        strcpy(message.mesg_text,txtBuffer);
         message.mesg_type = 1;
         message.clientId = file_info->clientId;
         send_msg(message);
@@ -91,7 +91,8 @@ static void get_msg(key_t key) {
 
         pthread_t thread;
         file_to_send info;
-        info.name = directory+msg.mesg_text;
+        strcat(directory,msg.mesg_text);
+        strcpy(info.name,directory);
         info.clientId =  msg.clientId;
         pthread_create(&thread,NULL,send_file,(void*)&info);
 		
