@@ -34,6 +34,18 @@ struct mesg_buffer {
     
 } message;
 
+static void send_msg(mesg_buffer msg) {
+    int msgid;
+
+    // msgget creates a message queue
+    // and returns identifier
+    msgid = msgget(msg.clientId, 0666 | IPC_CREAT);
+
+    msgsnd(msgid, &msg, sizeof(msg), 0);
+
+   
+}
+
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
 // général: https://man7.org/linux/man-pages/man7/sysvipc.7.html
 static void *send_file(void* arg){
@@ -42,19 +54,12 @@ static void *send_file(void* arg){
     cout<<"Sending: '"<< file_info->name<<"' to client: "<<file_info->clientId<<endl;
     //HERE WE SEND THE FILE with messages
     cout<<"file sent"<<endl;
+    mesg_buffer msg = {file_info->clientId, file_info->clientId, "Close the connection"};
+  
+    send_msg(msg);
     
 }
-static void send_msg(key_t key, mesg_buffer msg) {
-    int msgid;
 
-    // msgget creates a message queue
-    // and returns identifier
-    msgid = msgget(key, 0666 | IPC_CREAT);
-
-    msgsnd(msgid, &msg, sizeof(msg), 0);
-
-   
-}
 
 static mesg_buffer get_msg(key_t key) {
     int msgid;
@@ -69,7 +74,7 @@ static mesg_buffer get_msg(key_t key) {
         
         cout<<"Connection demand from : " << msg.clientId<<endl;
         toSend = {msg.clientId, msg.clientId, "Connection accepted"};
-        send_msg(msg.clientId, toSend);
+        send_msg(toSend);
         cout<<"Response sent"<<endl;
 
         pthread_t thread;
