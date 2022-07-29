@@ -94,8 +94,8 @@ static void get_msg(key_t key) {
         strcat(directory,msg.mesg_text);
         strcpy(info.name,directory);
         info.clientId =  msg.clientId;
-        send_file(&info);
-        //pthread_create(&thread,NULL,send_file,(void*)&info);
+        //send_file(&info);
+        pthread_create(&thread,NULL,send_file,(void*)&info);
 		
         
     }
