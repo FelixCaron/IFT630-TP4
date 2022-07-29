@@ -22,15 +22,18 @@ using std::ios;
 using std::ifstream;
 using std::cout;
 using std::endl;
+
 typedef void Sigfunc(int);
 Sigfunc *signal(int, Sigfunc *);
 
 int port;
 char directory[100];
+
 struct file_to_send {
     char name[100];
     int clientId;
 };
+
 struct mesg_buffer {
     long mesg_type;
     int clientId;
@@ -45,8 +48,6 @@ static void send_msg(mesg_buffer msg) {
     msgid = msgget(msg.clientId, 0666 | IPC_CREAT);
 
     msgsnd(msgid, &msg, sizeof(msg), 0);
-
-   
 }
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
@@ -125,7 +126,6 @@ int main(int argc, char* argv[]) {
 	cout << "Server started" << endl;
 	// Association du signal avec la procédure de gestion (callback).
     port = atoi(argv[1]);
-    //port = 1337;
 
     strcpy(directory,  "/tp4/IFT630-TP4/transfer_folder/");
 	signal(SIGINT, handle_signint);
