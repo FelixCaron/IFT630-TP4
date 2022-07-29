@@ -14,9 +14,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <string.h>
 
-using std::string;
 using std::cout;
 using std::endl;
 
@@ -24,7 +22,7 @@ struct mesg_buffer
 {
     long mesg_type;
     int clientId;
-    string mesg_text;
+    char mesg_text[100];
 };
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
@@ -71,13 +69,13 @@ int main(int argc, char *argv[])
     while (true)
     {
         leMessage = get_msg(useId);
-        if (leMessage.mesg_text=="Close the connection")
+        if (strcmp(leMessage.mesg_text, "Close the connection") == 0)
         {
             isConnected = false;
             cout << "Connection closed" << endl;
             return 0;
         }
-        else if (leMessage.mesg_text=="Connection accepted")
+        else if (strcmp(leMessage.mesg_text ,"Connection accepted")==0)
         {
             isConnected = true;
         }

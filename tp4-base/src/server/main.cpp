@@ -16,9 +16,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <fstream>
-#include <string.h>
 
-using std::string;
 using std::ios;
 using std::ifstream;
 using std::cout;
@@ -27,15 +25,15 @@ typedef void Sigfunc(int);
 Sigfunc *signal(int, Sigfunc *);
 
 int port;
-string directory;
+char directory[100];
 struct file_to_send {
-    string name;
+    char name[100];
     int clientId;
 };
 struct mesg_buffer {
     long mesg_type;
     int clientId;
-    string mesg_text; 
+    char mesg_text[100]; 
 };
 
 static void send_msg(mesg_buffer msg) {
@@ -93,10 +91,9 @@ static void get_msg(key_t key) {
 
         pthread_t thread;
         file_to_send info;
-        info.name = directory + msg.mesg_text;
+        info.name = directory+msg.mesg_text;
         info.clientId =  msg.clientId;
-        send_file(&info);
-        //pthread_create(&thread,NULL,send_file,(void*)&info);
+        pthread_create(&thread,NULL,send_file,(void*)&info);
 		
         
     }
@@ -128,7 +125,7 @@ int main(int argc, char* argv[]) {
     //port = atoi(argv[1]);
     port = 1337;
     //char directory[100] = argv[2];
-    directory = "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder";
+    strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder");
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
 
