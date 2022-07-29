@@ -18,6 +18,8 @@
 using std::cout;
 using std::endl;
 
+int timer = 0;
+
 struct mesg_buffer
 {
     long mesg_type;
@@ -62,8 +64,8 @@ int main(int argc, char *argv[])
 {
     cout << "Client started" << endl;
     bool isConnected = false;
-    int useId = 1;//atoi(argv[1]);
-    int defaultPort = 1337; // atoi(argv[2]);
+    int useId = atoi(argv[1]);
+    int defaultPort = atoi(argv[2]);
 
     mesg_buffer leMessage = {1, useId, "file1.txt"};
 
@@ -90,7 +92,7 @@ int main(int argc, char *argv[])
         {
             cout << "unexpected message: " << leMessage.mesg_text << endl;
             cout << "aborting" << endl;
-            //return 1;
         }
+        //sleep(timer); // periode de repos entre chaque segment
     }
 }

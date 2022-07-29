@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
 #include <fstream>
 
 using std::ios;
@@ -53,11 +54,19 @@ static void send_msg(mesg_buffer msg) {
 static void *send_file(void* arg){
     mesg_buffer message;
     char txtBuffer[100];
+    struct stat info;
     file_to_send* file_info;
     file_info = (file_to_send*) arg;
     cout<<"Sending: '"<< file_info->name<<"' to client: "<<file_info->clientId<<endl;
+    
     ifstream file(file_info->name, ios::binary);
-    while(!file.eof()){
+
+    if(stat(file_info->name, &info) != 0)
+        perror("stat() error\n");
+    cout << info.st_size << endl; // # de data byte dans file
+    
+    while(file.peek() != EOF)
+    {
         file.read(txtBuffer, 100);
         strcpy(message.mesg_text,txtBuffer);
         message.mesg_type = file_info->clientId;
@@ -67,7 +76,6 @@ static void *send_file(void* arg){
     cout<<"file sent"<<endl;
     mesg_buffer msg = {file_info->clientId, file_info->clientId, "Close the connection"};
     send_msg(msg);
-    
 }
 
 
@@ -94,17 +102,9 @@ static void get_msg(key_t key) {
         strcpy(info.name,directory);
         strcat(info.name,msg.mesg_text);
         info.clientId =  msg.clientId;
-        //send_file(&info);
-        pthread_create(&thread,NULL,send_file,(void*)&info);
-		
-        
-    }
-    // intéssant: https://www.ibm.com/docs/en/zos/2.3.0?topic=functions-msgrcv-message-receive-operation
-    // en bref on pourra faire en sorte que le serveur reçoit tout mais send spécifiquemment a certaine client
-    // avec un client ID ? (voir le param msgtyp )
-   //
 
-    
+        pthread_create(&thread,NULL,send_file,(void*)&info); 
+    }
 }
 
 static void end_queue(key_t key) {
@@ -124,10 +124,10 @@ void handle_signint(int sigNumber) {
 int main(int argc, char* argv[]) {
 	cout << "Server started" << endl;
 	// Association du signal avec la procédure de gestion (callback).
-    //port = atoi(argv[1]);
-    port = 1337;
-    //char directory[100] = argv[2];
-    strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder/");
+    port = atoi(argv[1]);
+    //port = 1337;
+
+    strcpy(directory,  "/tp4/IFT630-TP4/transfer_folder/"); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
     msgget(port, 0666|IPC_CREAT);
