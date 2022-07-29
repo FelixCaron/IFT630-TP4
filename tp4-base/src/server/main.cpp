@@ -60,13 +60,12 @@ static void *send_file(void* arg){
     while(!file.eof()){
         file.read(txtBuffer, 100);
         strcpy(message.mesg_text,txtBuffer);
-        message.mesg_type = 1;
+        message.mesg_type = file_info->clientId;
         message.clientId = file_info->clientId;
         send_msg(message);
     }
     cout<<"file sent"<<endl;
     mesg_buffer msg = {file_info->clientId, file_info->clientId, "Close the connection"};
-  
     send_msg(msg);
     
 }
@@ -78,7 +77,7 @@ static void get_msg(key_t key) {
     // msgget creates a message queue
     // and returns identifier
     // voir les param
-    msgid = msgget(key, 0666| IPC_CREAT);
+    msgid = msgget(key, 0666);
     mesg_buffer msg;
     mesg_buffer toSend;
     if (msgrcv(msgid, &msg, sizeof(msg), 1, IPC_NOWAIT) != -1) {
@@ -91,8 +90,9 @@ static void get_msg(key_t key) {
 
         pthread_t thread;
         file_to_send info;
-        strcat(directory,msg.mesg_text);
+        
         strcpy(info.name,directory);
+        strcat(info.name,msg.mesg_text);
         info.clientId =  msg.clientId;
         //send_file(&info);
         pthread_create(&thread,NULL,send_file,(void*)&info);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     strcpy(directory,  "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder/");
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
-
+    msgget(port, 0666|IPC_CREAT);
 	while (true) {
         get_msg(port);
 	}

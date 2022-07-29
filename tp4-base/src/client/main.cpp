@@ -53,7 +53,7 @@ static mesg_buffer get_msg(key_t clientId)
         };
     mesg_buffer message;
 
-    while(msgrcv(msgid, &message, sizeof(message), clientId, 0)==-1){    }
+    while(msgrcv(msgid, &message, sizeof(message), clientId, IPC_NOWAIT)==-1){};
 
     return message;
 }
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 {
     cout << "Client started" << endl;
     bool isConnected = false;
-    int useId = 1;          // atoi(argv[1]);
+    int useId = 1;//atoi(argv[1]);
     int defaultPort = 1337; // atoi(argv[2]);
 
     mesg_buffer leMessage = {1, useId, "file1.txt"};
