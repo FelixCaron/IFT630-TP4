@@ -15,24 +15,28 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <fstream>
+#include <string.h>
 
+using std::string;
+using std::ios;
+using std::ifstream;
 using std::cout;
 using std::endl;
 typedef void Sigfunc(int);
 Sigfunc *signal(int, Sigfunc *);
 
 int port;
-
+string directory;
 struct file_to_send {
-    char name[100];
+    string name;
     int clientId;
 };
 struct mesg_buffer {
     long mesg_type;
     int clientId;
-    char mesg_text[100];
-    
-} message;
+    string mesg_text; 
+};
 
 static void send_msg(mesg_buffer msg) {
     int msgid;
@@ -49,10 +53,19 @@ static void send_msg(mesg_buffer msg) {
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
 // général: https://man7.org/linux/man-pages/man7/sysvipc.7.html
 static void *send_file(void* arg){
+    mesg_buffer message;
+    char txtBuffer[100];
     file_to_send* file_info;
     file_info = (file_to_send*) arg;
     cout<<"Sending: '"<< file_info->name<<"' to client: "<<file_info->clientId<<endl;
-    //HERE WE SEND THE FILE with messages
+    ifstream file(file_info->name, ios::binary);
+    while(!file.eof()){
+        file.read(txtBuffer, 100);
+        message.mesg_text = txtBuffer;
+        message.mesg_type = 1;
+        message.clientId = file_info->clientId;
+        send_msg(message);
+    }
     cout<<"file sent"<<endl;
     mesg_buffer msg = {file_info->clientId, file_info->clientId, "Close the connection"};
   
@@ -61,7 +74,7 @@ static void *send_file(void* arg){
 }
 
 
-static mesg_buffer get_msg(key_t key) {
+static void get_msg(key_t key) {
     int msgid;
 
     // msgget creates a message queue
@@ -73,13 +86,17 @@ static mesg_buffer get_msg(key_t key) {
     if (msgrcv(msgid, &msg, sizeof(msg), 1, IPC_NOWAIT) != -1) {
         
         cout<<"Connection demand from : " << msg.clientId<<endl;
+        
         toSend = {msg.clientId, msg.clientId, "Connection accepted"};
         send_msg(toSend);
         cout<<"Response sent"<<endl;
 
         pthread_t thread;
-        file_to_send info = {"Nom du fichier", msg.clientId};
-        pthread_create(&thread,NULL,send_file,(void*)&info);
+        file_to_send info;
+        info.name = directory + msg.mesg_text;
+        info.clientId =  msg.clientId;
+        send_file(&info);
+        //pthread_create(&thread,NULL,send_file,(void*)&info);
 		
         
     }
@@ -88,7 +105,7 @@ static mesg_buffer get_msg(key_t key) {
     // avec un client ID ? (voir le param msgtyp )
    //
 
-    return message;
+    
 }
 
 static void end_queue(key_t key) {
@@ -110,11 +127,13 @@ int main(int argc, char* argv[]) {
 	// Association du signal avec la procédure de gestion (callback).
     //port = atoi(argv[1]);
     port = 1337;
+    //char directory[100] = argv[2];
+    directory = "/media/felix/DATA/Cours/e2022/ift630/TP4/transfer_folder";
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
 
 	while (true) {
-        leMessage = get_msg(port);
+        get_msg(port);
 	}
     exit(0);
 }

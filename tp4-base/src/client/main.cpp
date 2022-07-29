@@ -14,7 +14,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <string.h>
 
+using std::string;
 using std::cout;
 using std::endl;
 
@@ -22,7 +24,7 @@ struct mesg_buffer
 {
     long mesg_type;
     int clientId;
-    char mesg_text[100];
+    string mesg_text;
 };
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
@@ -63,19 +65,19 @@ int main(int argc, char *argv[])
     int useId = 1;          // atoi(argv[1]);
     int defaultPort = 1337; // atoi(argv[2]);
 
-    mesg_buffer leMessage = {1, useId, "This is a connection demand!"};
+    mesg_buffer leMessage = {1, useId, "file1.txt"};
 
     send_msg(defaultPort, leMessage, useId);
     while (true)
     {
         leMessage = get_msg(useId);
-        if (strcmp(leMessage.mesg_text, "Close the connection") == 0)
+        if (leMessage.mesg_text=="Close the connection")
         {
             isConnected = false;
             cout << "Connection closed" << endl;
             return 0;
         }
-        else if (strcmp(leMessage.mesg_text ,"Connection accepted")==0)
+        else if (leMessage.mesg_text=="Connection accepted")
         {
             isConnected = true;
         }
