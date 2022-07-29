@@ -67,7 +67,8 @@ int main(int argc, char *argv[])
     int useId = atoi(argv[1]);
     int defaultPort = atoi(argv[2]);
 
-    mesg_buffer leMessage = {1, useId, "file1.txt"};
+    mesg_buffer leMessage = {1, useId};
+    strcpy(leMessage.mesg_text, argv[3]);
 
     send_msg(defaultPort, leMessage, useId);
     while (true)

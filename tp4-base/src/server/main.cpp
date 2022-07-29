@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     port = atoi(argv[1]);
     //port = 1337;
 
-    strcpy(directory,  "/tp4/IFT630-TP4/transfer_folder/"); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
+    strcpy(directory,  "/tp4/IFT630-TP4/transfer_folder/");
 	signal(SIGINT, handle_signint);
     mesg_buffer leMessage;
     msgget(port, 0666|IPC_CREAT);
