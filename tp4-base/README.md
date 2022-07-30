@@ -4,7 +4,7 @@
 
 ## Information pour compiler le projet :
 - C++ 17 et plus pour utiliser le filesystem
--Dans le répertoire build du projet, executer ces commandes :
+- Pour compiler, naviguer dans le répertoire build du projet, éxécuter ces commandes :
 ```bash
 cmake ..
 ```
