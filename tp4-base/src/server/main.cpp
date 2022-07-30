@@ -130,8 +130,17 @@ void handle_signint(int sigNumber) {
      
     switch(sigNumber) {
         //SIGABRT
+        mesg_buffer msg;
         case(6):
             cout << "SIGABRT received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
@@ -152,14 +161,14 @@ void handle_signint(int sigNumber) {
                     cout << "SIGINT recu deux fois en moins de 2s, on quitte..." << std::endl;
                 
                     //Envoie du msg au client
-                    mesg_buffer msg;
+                    
                     msg.mesg_type = msg.clientId;
                     msg.clientId = msg.clientId;
                     msg.signal_caught = sigNumber;
                     send_msg(msg);
                     
                     //On clean!
-                    end_queue(1);
+                    // end_queue(msg.clientId); SEGFAULT ici, a fixer
                     end_queue(port);
                     exit(0);
                     break;
@@ -173,48 +182,112 @@ void handle_signint(int sigNumber) {
         //SIGTERM
         case(15):
             cout << "SIGTERM received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGHUP
         case(1):
             cout << "SIGHUP received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGQUIT
         case(3):
             cout << "SIGQUIT received, exiting..." << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGTSTP
         case(18):
             cout << "SIGTSTP received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGILL
         case(4):
             cout << "SIGILL received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGBUS
         case(10):
             cout << "SIGBUS received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;
         //SIGSEGV
         case(11):
             cout << "SIGSEGV received" << std::endl;
-                end_queue(port);
-                exit(0);
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
+            end_queue(port);
+            exit(0);
         break;
         //SIGFPE
         case(8):
             cout << "SIGFPE received" << std::endl;
+            //Envoie du msg au client
+            msg.mesg_type = msg.clientId;
+            msg.clientId = msg.clientId;
+            msg.signal_caught = sigNumber;
+            send_msg(msg);
+            
+            //On clean!
+            // end_queue(msg.clientId); SEGFAULT ici, a fixer
             end_queue(port);
             exit(0);
         break;

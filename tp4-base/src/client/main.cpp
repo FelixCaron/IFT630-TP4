@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
             cout << "Connection opened" << endl;
             isConnected = true;
         }
-        else if (leMessage.signal_caught==2)
+        else if (leMessage.signal_caught)
         {
             cout << "Le signal capte est: " << leMessage.signal_caught << endl;
             isConnected = false;
