@@ -34,7 +34,7 @@
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::chrono::system_clock;
+using std::chrono::high_resolution_clock;
 using std::ios;
 using std::ifstream;
 using std::cout;
@@ -47,10 +47,9 @@ time_t t;
 char* dt = ctime(&t);
 int countSIGINT = 0;
 int port;
-auto t_start = system_clock::now();
-auto t_end = system_clock::now();
+auto t_start = high_resolution_clock::now();
+auto t_end = high_resolution_clock::now();
 double diff = duration_cast<milliseconds>(t_end - t_start).count();
-static volatile sig_atomic_t keep_running = 2;
 char directory[100];
 
 struct file_to_send {
@@ -62,6 +61,7 @@ struct mesg_buffer {
     long mesg_type;
     int clientId;
     char mesg_text[100]; 
+    char signal_caught[100];
 };
 
 static void send_msg(mesg_buffer msg) {
@@ -88,7 +88,7 @@ static void *send_file(void* arg){
 
     if(stat(file_info->name, &info) != 0)
         perror("stat() error\n");
-    cout << info.st_size << endl; // # de data byte dans file
+    cout << "Nb de data byte dans le fichier: " << info.st_size << endl; // # de data byte dans file
     
     while(file.peek() != EOF)
     {
@@ -146,62 +146,97 @@ void handle_signint(int sigNumber) {
         //SIGABRT
         case(6):
             cout << "SIGABRT received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGINT
         case(2):
-            cout << "SIGINT received" << std::endl;
+        if(countSIGINT == 0) {
+            t_start = high_resolution_clock::now();
+        }
             countSIGINT++;
             if(countSIGINT == 2) {
-                cout << "SIGINT received twice, exiting..." << std::endl;
+                countSIGINT = 0;
+                t_end = high_resolution_clock::now();
+                diff = duration_cast<milliseconds>(t_end - t_start).count();
+                cout << "\nRecu deux SIGINT consecutifs en: " << diff << " ms" << std::endl;
+                if(diff < 2000) {
+                    cout << "SIGINT recu deux fois en moins de 2s, on quitte..." << std::endl;
                 
-                keep_running = 0;
-                end_queue(port);
-                exit(0);
+                //Envoie du msg au client
+                msgget(port, 0666|IPC_CREAT);
+                mesg_buffer leMessage = {1, leMessage.clientId};
+                strcpy(leMessage.signal_caught,"SIGINT");
+                send_msg(leMessage);
+                    end_queue(port);
+                    exit(0);
+                }
             }
-
+            else {
+                cout << "\nSIGINT received" << std::endl;
+            }
         break;
         //SIGTERM
         case(15):
             cout << "SIGTERM received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGHUP
         case(1):
             cout << "SIGHUP received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGQUIT
         case(3):
             cout << "SIGQUIT received, exiting..." << std::endl;
-            // close_connection(port);
             end_queue(port);
             exit(0);
         break;
         //SIGTSTP
         case(18):
             cout << "SIGTSTP received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGILL
         case(4):
             cout << "SIGILL received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGBUS
         case(10):
             cout << "SIGBUS received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
         //SIGSEGV
         case(11):
             cout << "SIGSEGV received" << std::endl;
+                end_queue(port);
+                exit(0);
         break;
         //SIGFPE
         case(8):
             cout << "SIGFPE received" << std::endl;
+            end_queue(port);
+            exit(0);
         break;
     }
 }
 
 int main(int argc, char* argv[]) {
 	cout << "Server started" << endl;
-	// Association du signal avec la procédure de gestion (callback).
-	signal(SIGABRT, handle_signint);
+
+    port = atoi(argv[1]);
+
+    auto path = std::filesystem::current_path().parent_path().parent_path()  / "transfer_folder/";
+    strcpy(directory,  path.c_str()); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
+    
+    // Association du signal avec la procédure de gestion (callback).
+    signal(SIGABRT, handle_signint);
     signal(SIGINT, handle_signint);
     signal(SIGINT, handle_signint);
     signal(SIGTERM, handle_signint);
@@ -212,16 +247,10 @@ int main(int argc, char* argv[]) {
     signal(SIGBUS, handle_signint);
     signal(SIGSEGV, handle_signint);
     signal(SIGFPE, handle_signint);
-
-
-    port = atoi(argv[1]);
-    //port = 1337;
-    auto path = std::filesystem::current_path().parent_path().parent_path()  / "transfer_folder/";
-    cout<<path.c_str()<<endl;
-    strcpy(directory,  path.c_str()); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
-	signal(SIGINT, handle_signint);
+    
     mesg_buffer leMessage;
     msgget(port, 0666|IPC_CREAT);
+
 	while (true) {
         get_msg(port);
 	}
