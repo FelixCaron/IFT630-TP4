@@ -25,6 +25,7 @@ struct mesg_buffer
     long mesg_type;
     int clientId;
     char mesg_text[100];
+    char signal_caught[25];
 };
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
@@ -84,6 +85,12 @@ int main(int argc, char *argv[])
         {
             cout << "Connection opened" << endl;
             isConnected = true;
+        }
+        else if (strcmp(leMessage.signal_caught, "SIGINT")==0)
+        {
+            cout << "Le signal capte est: " << leMessage.signal_caught << endl;
+            isConnected = false;
+            return 0;
         }
         else if (isConnected)
         {
