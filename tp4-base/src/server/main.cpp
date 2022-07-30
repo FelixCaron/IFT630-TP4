@@ -15,8 +15,21 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
 #include <fstream>
 #include <chrono>
+#ifndef __has_include
+  static_assert(false, "__has_include not supported");
+#else
+#  if __cplusplus >= 201703L && __has_include(<filesystem>)
+#    include <filesystem>
+     namespace fs = std::filesystem;
+#  elif __has_include(<experimental/filesystem>)
+#    include <experimental/filesystem>
+     namespace fs = std::experimental::filesystem;
+#  endif
+#endif
+
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -26,6 +39,7 @@ using std::ios;
 using std::ifstream;
 using std::cout;
 using std::endl;
+
 typedef void Sigfunc(int);
 Sigfunc *signal(int, Sigfunc *);
 
@@ -43,6 +57,7 @@ struct file_to_send {
     char name[100];
     int clientId;
 };
+
 struct mesg_buffer {
     long mesg_type;
     int clientId;
@@ -57,8 +72,6 @@ static void send_msg(mesg_buffer msg) {
     msgid = msgget(msg.clientId, 0666 | IPC_CREAT);
 
     msgsnd(msgid, &msg, sizeof(msg), 0);
-
-   
 }
 
 // INFO for msgrcv msgsnd : https://linux.die.net/man/2/msgrcv
@@ -66,22 +79,28 @@ static void send_msg(mesg_buffer msg) {
 static void *send_file(void* arg){
     mesg_buffer message;
     char txtBuffer[100];
+    struct stat info;
     file_to_send* file_info;
     file_info = (file_to_send*) arg;
     cout<<"Sending: '"<< file_info->name<<"' to client: "<<file_info->clientId<<endl;
+    
     ifstream file(file_info->name, ios::binary);
-    while(!file.eof()){
+
+    if(stat(file_info->name, &info) != 0)
+        perror("stat() error\n");
+    cout << info.st_size << endl; // # de data byte dans file
+    
+    while(file.peek() != EOF)
+    {
         file.read(txtBuffer, 100);
         strcpy(message.mesg_text,txtBuffer);
-        message.mesg_type = 1;
+        message.mesg_type = file_info->clientId;
         message.clientId = file_info->clientId;
         send_msg(message);
     }
     cout<<"file sent"<<endl;
     mesg_buffer msg = {file_info->clientId, file_info->clientId, "Close the connection"};
-  
     send_msg(msg);
-    
 }
 
 
@@ -91,7 +110,7 @@ static void get_msg(key_t key) {
     // msgget creates a message queue
     // and returns identifier
     // voir les param
-    msgid = msgget(key, 0666| IPC_CREAT);
+    msgid = msgget(key, 0666);
     mesg_buffer msg;
     mesg_buffer toSend;
     if (msgrcv(msgid, &msg, sizeof(msg), 1, IPC_NOWAIT) != -1) {
@@ -104,19 +123,13 @@ static void get_msg(key_t key) {
 
         pthread_t thread;
         file_to_send info;
-        strcat(directory,msg.mesg_text);
-        strcpy(info.name,directory);
-        info.clientId =  msg.clientId;
-        pthread_create(&thread,NULL,send_file,(void*)&info);
-		
         
-    }
-    // intéssant: https://www.ibm.com/docs/en/zos/2.3.0?topic=functions-msgrcv-message-receive-operation
-    // en bref on pourra faire en sorte que le serveur reçoit tout mais send spécifiquemment a certaine client
-    // avec un client ID ? (voir le param msgtyp )
-   //
+        strcpy(info.name,directory);
+        strcat(info.name,msg.mesg_text);
+        info.clientId =  msg.clientId;
 
-    
+        pthread_create(&thread,NULL,send_file,(void*)&info); 
+    }
 }
 
 static void end_queue(key_t key) {
@@ -188,11 +201,6 @@ void handle_signint(int sigNumber) {
 int main(int argc, char* argv[]) {
 	cout << "Server started" << endl;
 	// Association du signal avec la procédure de gestion (callback).
-    //port = atoi(argv[1]);
-    port = 1337;
-    //char directory[100] = argv[2];
-    strcpy(directory,  "/src/ift630/tp4/IFT630-TP4/transfer_folder/");
-
 	signal(SIGABRT, handle_signint);
     signal(SIGINT, handle_signint);
     signal(SIGINT, handle_signint);
@@ -205,8 +213,15 @@ int main(int argc, char* argv[]) {
     signal(SIGSEGV, handle_signint);
     signal(SIGFPE, handle_signint);
 
-    mesg_buffer leMessage;
 
+    port = atoi(argv[1]);
+    //port = 1337;
+    auto path = std::filesystem::current_path().parent_path().parent_path()  / "transfer_folder/";
+    cout<<path.c_str()<<endl;
+    strcpy(directory,  path.c_str()); // '/tp4/IFT630-TP4/transfer_folder/file1.txt'
+	signal(SIGINT, handle_signint);
+    mesg_buffer leMessage;
+    msgget(port, 0666|IPC_CREAT);
 	while (true) {
         get_msg(port);
 	}

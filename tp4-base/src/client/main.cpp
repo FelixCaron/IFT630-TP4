@@ -18,6 +18,8 @@
 using std::cout;
 using std::endl;
 
+int timer = 0;
+
 struct mesg_buffer
 {
     long mesg_type;
@@ -45,13 +47,15 @@ static void send_msg(key_t key, mesg_buffer msg, int clientId)
 
 static mesg_buffer get_msg(key_t clientId)
 {
-    int msgid;
+    int msgid = -1;
 
     // msgget creates a message queue, ici on a enlever IPC_CREAT car on veut crash quand on as pas le bon data.
-    msgid = msgget(clientId, 0666);
+    while(msgid==-1){
+        msgid = msgget(clientId, 0666);
+        };
     mesg_buffer message;
 
-    msgrcv(msgid, &message, sizeof(message), clientId, 0);
+    while(msgrcv(msgid, &message, sizeof(message), clientId, IPC_NOWAIT)==-1){};
 
     return message;
 }
@@ -60,10 +64,11 @@ int main(int argc, char *argv[])
 {
     cout << "Client started" << endl;
     bool isConnected = false;
-    int useId = 1;          // atoi(argv[1]);
-    int defaultPort = 1337; // atoi(argv[2]);
+    int useId = atoi(argv[1]);
+    int defaultPort = atoi(argv[2]);
 
-    mesg_buffer leMessage = {1, useId, "file1.txt"};
+    mesg_buffer leMessage = {1, useId};
+    strcpy(leMessage.mesg_text, argv[3]);
 
     send_msg(defaultPort, leMessage, useId);
     while (true)
@@ -77,6 +82,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(leMessage.mesg_text ,"Connection accepted")==0)
         {
+            cout << "Connection opened" << endl;
             isConnected = true;
         }
         else if (isConnected)
@@ -87,7 +93,7 @@ int main(int argc, char *argv[])
         {
             cout << "unexpected message: " << leMessage.mesg_text << endl;
             cout << "aborting" << endl;
-            return 1;
         }
+        //sleep(timer); // periode de repos entre chaque segment
     }
 }
