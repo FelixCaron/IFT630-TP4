@@ -153,9 +153,11 @@ void handle_signint(int sigNumber) {
                 
                     //Envoie du msg au client
                     mesg_buffer msg;
-                    strcpy(msg.signal_caught,"SIGINT");
                     
-                    msg = {1, msg.clientId};
+                    
+                    msg.mesg_type = msg.clientId;
+                    msg.clientId = msg.clientId;
+                    strcpy(msg.signal_caught,"SIGINT");
                     send_msg(msg);
                     
                     //On clean!
