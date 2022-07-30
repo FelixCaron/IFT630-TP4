@@ -2,6 +2,18 @@
 
 ## Commandes utiles :
 
+# Information pour compiler le projet :
+- C++ 17 et plus pour utiliser le filesystem
+
+Dans le répertoire build du projet, executer ces commandes :
+```bash
+cmake ..
+```
+Ensuite :
+```bash
+make
+```
+
 Afficher des informations sur les installations IPC (canaux ouvert, segments mémoire partagés, etc) :
 
 ```bash
@@ -22,15 +34,12 @@ ipcs -i <id de la ressource> -q -p
 
 ## Utilisation du programme «serveur»
 
--   Build avec CMake
--   Vérifier que le dossier à partager est existant, voir racine du projet
--   se rendre dans le dossier build ou cmake a contruit le projet
--   executer ./server <port>
-
-
+-   Vérifier que le dossier à partager est existant, voir racine du projet. Le nom devrait être « transfer_folder »
+-   Naviguer jusqu'au dossier build où cmake a contruit le projet
+-   éxécuter ./server <port>
 
 
 ## Utilisation du programme «client»
 
--   S'assurer aue le serveur est en marche
--   executer ./client <id> <portServeur> <nom du fichier à transférer>
+-   S'assurer que le serveur est en marche
+-   éxécuter ./client <id> <portServeur> <nom du fichier à transférer>
