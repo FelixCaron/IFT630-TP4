@@ -22,8 +22,15 @@ ipcs -i <id de la ressource> -q -p
 
 ## Utilisation du programme «serveur»
 
-TODO: ...
+-   Build avec CMake
+-   Vérifier que le dossier à partager est existant, voir racine du projet
+-   se rendre dans le dossier build ou cmake a contruit le projet
+-   executer ./server <port>
+
+
+
 
 ## Utilisation du programme «client»
 
-TODO: ...
+-   S'assurer aue le serveur est en marche
+-   executer ./client <id> <portServeur> <nom du fichier à transférer>
