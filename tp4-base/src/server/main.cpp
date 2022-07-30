@@ -61,7 +61,7 @@ struct mesg_buffer {
     long mesg_type;
     int clientId;
     char mesg_text[100]; 
-    char signal_caught[100];
+    char signal_caught[25];
 };
 
 static void send_msg(mesg_buffer msg) {
