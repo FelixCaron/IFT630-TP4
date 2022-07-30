@@ -47,7 +47,7 @@ struct mesg_buffer {
     long mesg_type;
     int clientId;
     char mesg_text[100]; 
-    char signal_caught[25];
+    int signal_caught;
 };
 
 static void send_msg(mesg_buffer msg) {
@@ -153,11 +153,9 @@ void handle_signint(int sigNumber) {
                 
                     //Envoie du msg au client
                     mesg_buffer msg;
-                    
-                    
                     msg.mesg_type = msg.clientId;
                     msg.clientId = msg.clientId;
-                    strcpy(msg.signal_caught,"SIGINT");
+                    msg.signal_caught = sigNumber;
                     send_msg(msg);
                     
                     //On clean!
